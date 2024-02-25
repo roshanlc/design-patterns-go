@@ -1,34 +1,38 @@
 package main
 
-import "database/sql"
+import (
+	"database/sql"
+	"fmt"
+	"os"
+)
 
-// Example of a basic singleton pattern
-type Database struct {
-	Connection *sql.DB
+// Example of a basic prototype pattern
+type DatabaseConfig struct {
+	DSN string
 }
 
-var instance *Database
+type Database struct {
+	Conn *sql.DB
+}
 
-func GetInstance() *Database {
+func (dc *DatabaseConfig) Clone() Database {
 
-	if instance != nil {
-		return instance
-	}
-
-	// open an actual db connection and return it
-	conn, err := sql.Open("connection string")
-
+	conn, err := sql.Open(dc.DSN, "")
 	if err != nil {
-		panic("could not establish conn")
+		fmt.Println(err)
+		return Database{}
 	}
 
-	instance = &Database{Connection: conn}
-	return instance
+	return Database{Conn: conn}
 }
 
 func main() {
 
-	var dbConn = GetInstance()
-	_ = dbConn
+	dbConfig := DatabaseConfig{os.Getenv("DB_CONN_STRING")}
+
+	db1 := dbConfig.Clone()
+	db2 := dbConfig.Clone()
+
+	_, _ = db1, db2
 
 }
